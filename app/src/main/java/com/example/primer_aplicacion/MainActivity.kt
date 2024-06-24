@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     var puntosj2 = 0
     var numeroImagen = 1
     var escuchar = true
+    var primeraSeleccion: Boolean = true
     //</editor-fold>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,7 +134,6 @@ class MainActivity : AppCompatActivity() {
         iv_34.setOnClickListener { seleccionar(iv_34) }
         //</editor-fold>
 
-        //</editor-fold>
     }
 
     @SuppressLint("DiscouragedApi")
@@ -174,8 +174,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun seleccionar(imagen: View) {
+        val iv = imagen as ImageView
         sonido("touch")
-        verificar(imagen as ImageView)
+        verificar(iv)
     }
 
     private fun verificar(iv: ImageView) {
@@ -195,16 +196,14 @@ class MainActivity : AppCompatActivity() {
             26 -> iv.setImageResource(juntos)
         }
 
-        if (numeroImagen == 1) {
+        if (primeraSeleccion) {
             imagen1 = iv
-            numeroImagen = 2
-            iv.isEnabled = false
-        } else if (numeroImagen == 2) {
+            primeraSeleccion = false
+        } else {
             imagen2 = iv
-            numeroImagen = 1
-            iv.isEnabled = false
             deshabilitarImagenes()
             sonImagenesIguales()
+            primeraSeleccion = true
         }
     }
 
@@ -214,46 +213,34 @@ class MainActivity : AppCompatActivity() {
             if (turno == 1) {
                 puntosj1++
                 tv_j1.text = "J1: $puntosj1"
-            } else if (turno == 2) {
+            } else {
                 puntosj2++
                 tv_j2.text = "J2: $puntosj2"
             }
             imagen1.isEnabled = false
             imagen2.isEnabled = false
-            imagen1.tag = ""
-            imagen2.tag = ""
         } else {
             sonido("no")
-            imagen1.setImageResource(R.drawable.oculta)
-            imagen2.setImageResource(R.drawable.oculta)
-            if (turno == 1) {
-                turno = 2
-                tv_j1.setTextColor(Color.GRAY)
-                tv_j2.setTextColor(Color.WHITE)
-            } else if (turno == 2) {
-                turno = 1
-                tv_j1.setTextColor(Color.WHITE)
-                tv_j2.setTextColor(Color.GRAY)
-            }
+            // Retraso para mostrar las imágenes antes de voltearlas nuevamente
+            iv_11.postDelayed({
+                imagen1.setImageResource(R.drawable.oculta)
+                imagen2.setImageResource(R.drawable.oculta)
+                if (turno == 1) {
+                    turno = 2
+                    tv_j1.setTextColor(Color.GRAY)
+                    tv_j2.setTextColor(Color.WHITE)
+                } else {
+                    turno = 1
+                    tv_j1.setTextColor(Color.WHITE)
+                    tv_j2.setTextColor(Color.GRAY)
+                }
+                habilitarImagenes()
+            }, 1000)
         }
+        varificarFinJuego()
     }
 
-    private fun deshabilitarImagenes() {
-        iv_11.isEnabled = false
-        iv_12.isEnabled = false
-        iv_13.isEnabled = false
-        iv_14.isEnabled = false
-        iv_21.isEnabled = false
-        iv_22.isEnabled = false
-        iv_23.isEnabled = false
-        iv_24.isEnabled = false
-        iv_31.isEnabled = false
-        iv_32.isEnabled = false
-        iv_33.isEnabled = false
-        iv_34.isEnabled = false
-    }
-
-    private fun verificarFinJuego() {
+    private fun varificarFinJuego() {
         if (iv_11.tag.toString().isEmpty() &&
             iv_12.tag.toString().isEmpty() &&
             iv_13.tag.toString().isEmpty() &&
@@ -288,11 +275,45 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun deshabilitarImagenes() {
+        iv_11.isEnabled = false
+        iv_12.isEnabled = false
+        iv_13.isEnabled = false
+        iv_14.isEnabled = false
+        iv_21.isEnabled = false
+        iv_22.isEnabled = false
+        iv_23.isEnabled = false
+        iv_24.isEnabled = false
+        iv_31.isEnabled = false
+        iv_32.isEnabled = false
+        iv_33.isEnabled = false
+        iv_34.isEnabled = false
+    }
+
+    private fun habilitarImagenes() {
+        iv_11.isEnabled = true
+        iv_12.isEnabled = true
+        iv_13.isEnabled = true
+        iv_14.isEnabled = true
+        iv_21.isEnabled = true
+        iv_22.isEnabled = true
+        iv_23.isEnabled = true
+        iv_24.isEnabled = true
+        iv_31.isEnabled = true
+        iv_32.isEnabled = true
+        iv_33.isEnabled = true
+        iv_34.isEnabled = true
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         if (mpFondo.isPlaying) {
             mpFondo.stop()
             mpFondo.release()
+        }
+        if (mp.isPlaying) {
+            mp.stop()
+            mp.release()
         }
     }
 }
