@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -14,7 +15,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
-
     //<editor-fold desc="IMAGENES GUI">
     lateinit var iv_11: ImageView
     lateinit var iv_12: ImageView
@@ -29,34 +29,29 @@ class MainActivity : AppCompatActivity() {
     lateinit var iv_33: ImageView
     lateinit var iv_34: ImageView
     //</editor-fold>
-
     //<editor-fold desc="OTROS GUI">
     lateinit var tv_j1: TextView
     lateinit var tv_j2: TextView
-
-    lateinit var mp: MediaPlayer
-    lateinit var mpFondo: MediaPlayer
     lateinit var ib_sonido: ImageButton
-    lateinit var imagen1: ImageView
-    lateinit var imagen2: ImageView
     //</editor-fold>
-
     //<editor-fold desc="VARIABLES">
-    var imagenesArray =
-        arrayOf(11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 25, 26)
+    var imagenesArray = arrayOf(11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 25, 26)
     var homero = 0
     var bart = 0
     var lisa = 0
     var familia = 0
     var juntos = 0
     var comida = 0
-
     var turno = 1
     var puntosj1 = 0
     var puntosj2 = 0
     var numeroImagen = 1
     var escuchar = true
-    var primeraSeleccion: Boolean = true
+    var parejaEncontrada = 0
+    var imagen1: ImageView? = null
+    var imagen2: ImageView? = null
+    lateinit var mpFondo: MediaPlayer
+    lateinit var mp: MediaPlayer
     //</editor-fold>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,19 +75,14 @@ class MainActivity : AppCompatActivity() {
         iv_33 = findViewById(R.id.iv_33)
         iv_34 = findViewById(R.id.iv_34)
         //</editor-fold>
-
         //<editor-fold desc="Enlace de otros elementos GUI">
         ib_sonido = findViewById(R.id.ib_sonido)
         ib_sonido.setColorFilter(Color.GREEN)
-
         tv_j1 = findViewById(R.id.tv_j1)
         tv_j2 = findViewById(R.id.tv_j2)
-
         tv_j2.setTextColor(Color.GRAY)
         tv_j1.setTextColor(Color.WHITE)
-
         //</editor-fold>
-
         //<editor-fold desc="Inicialización de recursos">
         homero = R.drawable.homero
         bart = R.drawable.bart
@@ -101,9 +91,7 @@ class MainActivity : AppCompatActivity() {
         juntos = R.drawable.juntos
         lisa = R.drawable.lisa
         //</editor-fold>
-
         imagenesArray.shuffle()
-
         //<editor-fold desc="Asignación de tags">
         iv_11.tag = "0"
         iv_12.tag = "1"
@@ -118,22 +106,22 @@ class MainActivity : AppCompatActivity() {
         iv_33.tag = "10"
         iv_34.tag = "11"
         //</editor-fold>
-
         //<editor-fold desc="Configuración de eventos onClick">
-        iv_11.setOnClickListener { seleccionar(iv_11) }
-        iv_12.setOnClickListener { seleccionar(iv_12) }
-        iv_13.setOnClickListener { seleccionar(iv_13) }
-        iv_14.setOnClickListener { seleccionar(iv_14) }
-        iv_21.setOnClickListener { seleccionar(iv_21) }
-        iv_22.setOnClickListener { seleccionar(iv_22) }
-        iv_23.setOnClickListener { seleccionar(iv_23) }
-        iv_24.setOnClickListener { seleccionar(iv_24) }
-        iv_31.setOnClickListener { seleccionar(iv_31) }
-        iv_32.setOnClickListener { seleccionar(iv_32) }
-        iv_33.setOnClickListener { seleccionar(iv_33) }
-        iv_34.setOnClickListener { seleccionar(iv_34) }
+        iv_11.setOnClickListener { seleccionar(it as ImageView) }
+        iv_12.setOnClickListener { seleccionar(it as ImageView) }
+        iv_13.setOnClickListener { seleccionar(it as ImageView) }
+        iv_14.setOnClickListener { seleccionar(it as ImageView) }
+        iv_21.setOnClickListener { seleccionar(it as ImageView) }
+        iv_22.setOnClickListener { seleccionar(it as ImageView) }
+        iv_23.setOnClickListener { seleccionar(it as ImageView) }
+        iv_24.setOnClickListener { seleccionar(it as ImageView) }
+        iv_31.setOnClickListener { seleccionar(it as ImageView) }
+        iv_32.setOnClickListener { seleccionar(it as ImageView) }
+        iv_33.setOnClickListener { seleccionar(it as ImageView) }
+        iv_34.setOnClickListener { seleccionar(it as ImageView) }
         //</editor-fold>
-
+        // Iniciar música de fondo
+        sonido("background", true)
     }
 
     @SuppressLint("DiscouragedApi")
@@ -173,42 +161,42 @@ class MainActivity : AppCompatActivity() {
         escuchar = !escuchar
     }
 
-    fun seleccionar(imagen: View) {
-        val iv = imagen as ImageView
+    fun seleccionar(imagen: ImageView) {
         sonido("touch")
-        verificar(iv)
+        verificar(imagen)
     }
 
     private fun verificar(iv: ImageView) {
         val tag = iv.tag.toString().toInt()
         when (imagenesArray[tag]) {
-            11 -> iv.setImageResource(homero)
-            12 -> iv.setImageResource(bart)
-            13 -> iv.setImageResource(lisa)
-            14 -> iv.setImageResource(familia)
-            15 -> iv.setImageResource(comida)
-            16 -> iv.setImageResource(juntos)
-            21 -> iv.setImageResource(homero)
-            22 -> iv.setImageResource(bart)
-            23 -> iv.setImageResource(lisa)
-            24 -> iv.setImageResource(familia)
-            25 -> iv.setImageResource(comida)
-            26 -> iv.setImageResource(juntos)
+            11 -> iv.setImageResource(R.drawable.homero)
+            12 -> iv.setImageResource(R.drawable.bart)
+            13 -> iv.setImageResource(R.drawable.lisa)
+            14 -> iv.setImageResource(R.drawable.familia)
+            15 -> iv.setImageResource(R.drawable.comida)
+            16 -> iv.setImageResource(R.drawable.juntos)
+            21 -> iv.setImageResource(R.drawable.homero)
+            22 -> iv.setImageResource(R.drawable.bart)
+            23 -> iv.setImageResource(R.drawable.lisa)
+            24 -> iv.setImageResource(R.drawable.familia)
+            25 -> iv.setImageResource(R.drawable.comida)
+            26 -> iv.setImageResource(R.drawable.juntos)
         }
-
-        if (primeraSeleccion) {
+        if (numeroImagen == 1) {
             imagen1 = iv
-            primeraSeleccion = false
-        } else {
+            numeroImagen = 2
+            iv.isEnabled = false
+        } else if (numeroImagen == 2) {
             imagen2 = iv
+            numeroImagen = 1
+            iv.isEnabled = false
             deshabilitarImagenes()
             sonImagenesIguales()
-            primeraSeleccion = true
         }
     }
 
     private fun sonImagenesIguales() {
-        if (imagen1.drawable.constantState == imagen2.drawable.constantState) {
+        if (imagen1!!.drawable.constantState == imagen2!!.drawable.constantState) {
             sonido("success")
             if (turno == 1) {
                 puntosj1++
@@ -217,43 +205,39 @@ class MainActivity : AppCompatActivity() {
                 puntosj2++
                 tv_j2.text = "J2: $puntosj2"
             }
-            imagen1.isEnabled = false
-            imagen2.isEnabled = false
+            parejaEncontrada++
+            imagen1!!.isEnabled = false
+            imagen2!!.isEnabled = false
+            varificarFinJuego()
         } else {
             sonido("no")
-            // Retraso para mostrar las imágenes antes de voltearlas nuevamente
-            iv_11.postDelayed({
-                imagen1.setImageResource(R.drawable.oculta)
-                imagen2.setImageResource(R.drawable.oculta)
-                if (turno == 1) {
-                    turno = 2
-                    tv_j1.setTextColor(Color.GRAY)
-                    tv_j2.setTextColor(Color.WHITE)
-                } else {
-                    turno = 1
-                    tv_j1.setTextColor(Color.WHITE)
-                    tv_j2.setTextColor(Color.GRAY)
-                }
+            Handler().postDelayed({
+                imagen1!!.setImageResource(R.drawable.oculta)
+                imagen2!!.setImageResource(R.drawable.oculta)
                 habilitarImagenes()
+                cambiarTurno()
             }, 1000)
         }
-        varificarFinJuego()
+    }
+
+    private fun cambiarTurno() {
+        turno = if (turno == 1) 2 else 1
+        actualizarColoresTurno()
+    }
+
+    private fun actualizarColoresTurno() {
+        if (turno == 1) {
+            tv_j1.setTextColor(Color.WHITE)
+            tv_j2.setTextColor(Color.GRAY)
+        } else {
+            tv_j1.setTextColor(Color.GRAY)
+            tv_j2.setTextColor(Color.WHITE)
+        }
     }
 
     private fun varificarFinJuego() {
-        if (iv_11.tag.toString().isEmpty() &&
-            iv_12.tag.toString().isEmpty() &&
-            iv_13.tag.toString().isEmpty() &&
-            iv_14.tag.toString().isEmpty() &&
-            iv_21.tag.toString().isEmpty() &&
-            iv_22.tag.toString().isEmpty() &&
-            iv_23.tag.toString().isEmpty() &&
-            iv_24.tag.toString().isEmpty() &&
-            iv_31.tag.toString().isEmpty() &&
-            iv_32.tag.toString().isEmpty() &&
-            iv_33.tag.toString().isEmpty() &&
-            iv_34.tag.toString().isEmpty()
-        ) {
+        if (parejaEncontrada == 6) {
+            // Todas las parejas han sido encontradas, terminar el juego
             mpFondo.stop()
             mpFondo.release()
             sonido("win")
@@ -272,6 +256,9 @@ class MainActivity : AppCompatActivity() {
                 }
             val ad = builder.create()
             ad.show()
+        } else {
+            // Aún hay parejas por encontrar, permitir al jugador seguir seleccionando cartas
+            habilitarImagenes()
         }
     }
 
