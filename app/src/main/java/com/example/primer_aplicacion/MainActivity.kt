@@ -162,6 +162,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun seleccionar(imagen: ImageView) {
+        if (!imagen.isEnabled) return // Evitar seleccionar una imagen ya encontrada
         sonido("touch")
         verificar(imagen)
     }
@@ -206,6 +207,7 @@ class MainActivity : AppCompatActivity() {
                 tv_j2.text = "J2: $puntosj2"
             }
             parejaEncontrada++
+            // Deshabilitar las imágenes emparejadas
             imagen1!!.isEnabled = false
             imagen2!!.isEnabled = false
             varificarFinJuego()
@@ -218,6 +220,34 @@ class MainActivity : AppCompatActivity() {
                 cambiarTurno()
             }, 1000)
         }
+    }
+    private fun deshabilitarImagenes() {
+        iv_11.isEnabled = false
+        iv_12.isEnabled = false
+        iv_13.isEnabled = false
+        iv_14.isEnabled = false
+        iv_21.isEnabled = false
+        iv_22.isEnabled = false
+        iv_23.isEnabled = false
+        iv_24.isEnabled = false
+        iv_31.isEnabled = false
+        iv_32.isEnabled = false
+        iv_33.isEnabled = false
+        iv_34.isEnabled = false
+    }
+    private fun habilitarImagenes() {
+        iv_11.isEnabled = true
+        iv_12.isEnabled = true
+        iv_13.isEnabled = true
+        iv_14.isEnabled = true
+        iv_21.isEnabled = true
+        iv_22.isEnabled = true
+        iv_23.isEnabled = true
+        iv_24.isEnabled = true
+        iv_31.isEnabled = true
+        iv_32.isEnabled = true
+        iv_33.isEnabled = true
+        iv_34.isEnabled = true
     }
 
     private fun cambiarTurno() {
@@ -246,14 +276,8 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Fin del juego")
                 .setMessage("Puntaje:\nJ1: $puntosj1\nJ2: $puntosj2")
                 .setCancelable(false)
-                .setPositiveButton("Nuevo juego") { dialogInterface, i ->
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                }
-                .setNeutralButton("Salir") { dialogInterface, i ->
-                    finish()
-                }
+                .setPositiveButton("Nuevo juego") { dialogInterface, i -> resetearJuego()}
+                .setNeutralButton("Salir") { dialogInterface, i ->finish()}
             val ad = builder.create()
             ad.show()
         } else {
@@ -261,23 +285,46 @@ class MainActivity : AppCompatActivity() {
             habilitarImagenes()
         }
     }
+    private fun resetearJuego() {
+        // Reiniciar variables de juego
+        puntosj1 = 0
+        puntosj2 = 0
+        parejaEncontrada = 0
+        turno = 1
+        numeroImagen = 1
+        escuchar = true
 
-    private fun deshabilitarImagenes() {
-        iv_11.isEnabled = false
-        iv_12.isEnabled = false
-        iv_13.isEnabled = false
-        iv_14.isEnabled = false
-        iv_21.isEnabled = false
-        iv_22.isEnabled = false
-        iv_23.isEnabled = false
-        iv_24.isEnabled = false
-        iv_31.isEnabled = false
-        iv_32.isEnabled = false
-        iv_33.isEnabled = false
-        iv_34.isEnabled = false
+        // Reiniciar textos de puntajes
+        tv_j1.text = "J1: 0"
+        tv_j2.text = "J2: 0"
+
+        // Habilitar todas las imágenes
+        habilitarTodasLasImagenes()
+
+        // Mezclar nuevamente el array de imágenes
+        imagenesArray.shuffle()
+
+        // Iniciar música de fondo nuevamente
+        sonido("background", true)
+        // Establecer todas las imágenes en estado oculto
+        iv_11.setImageResource(R.drawable.oculta)
+        iv_12.setImageResource(R.drawable.oculta)
+        iv_13.setImageResource(R.drawable.oculta)
+        iv_14.setImageResource(R.drawable.oculta)
+        iv_21.setImageResource(R.drawable.oculta)
+        iv_22.setImageResource(R.drawable.oculta)
+        iv_23.setImageResource(R.drawable.oculta)
+        iv_24.setImageResource(R.drawable.oculta)
+        iv_31.setImageResource(R.drawable.oculta)
+        iv_32.setImageResource(R.drawable.oculta)
+        iv_33.setImageResource(R.drawable.oculta)
+        iv_34.setImageResource(R.drawable.oculta)
+
+        // Mezclar nuevamente el array de imágenes
+        imagenesArray.shuffle()
     }
-
-    private fun habilitarImagenes() {
+    private fun habilitarTodasLasImagenes() {
+        // Habilitar todas las imágenes
         iv_11.isEnabled = true
         iv_12.isEnabled = true
         iv_13.isEnabled = true
@@ -291,6 +338,7 @@ class MainActivity : AppCompatActivity() {
         iv_33.isEnabled = true
         iv_34.isEnabled = true
     }
+
 
     override fun onDestroy() {
         super.onDestroy()
