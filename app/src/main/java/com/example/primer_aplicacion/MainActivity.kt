@@ -13,6 +13,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+
 
 class MainActivity : AppCompatActivity() {
     //<editor-fold desc="IMAGENES GUI">
@@ -57,7 +59,72 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Enlazar vista del botón de sonido
+        ib_sonido = findViewById(R.id.ib_sonido)
+        ib_sonido.setOnClickListener { musicaFondo(it) }  // Asignar listener al botón de sonido
+
+        // Inicializar y comenzar música de fondo
+        mpFondo = MediaPlayer.create(this, R.raw.background)
+        mpFondo.isLooping = true
+        mpFondo.setVolume(0.04F, 0.04F)
+        mpFondo.start()
+
+        // Configurar estado inicial del botón de sonido
+        ib_sonido.setImageResource(R.drawable.ic_volume_on)
         enlazarGUI()
+    }
+
+    fun musicaFondo(v: View) {
+        if (escuchar) {
+            mpFondo.pause()
+            ib_sonido.setImageResource(R.drawable.ic_volume_off)
+        } else {
+            mpFondo.start()
+            ib_sonido.setImageResource(R.drawable.ic_volume_on)
+        }
+        escuchar = !escuchar
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Detener y liberar música de fondo
+        mpFondo.stop()
+        mpFondo.release()
+    }
+
+    private fun deberiaReproducirSonido(): Boolean {
+        return ib_sonido.drawable.constantState == ContextCompat.getDrawable(this, R.drawable.ic_volume_on)?.constantState
+    }
+
+
+
+
+
+
+
+    @SuppressLint("DiscouragedApi")
+    private fun sonido(sonidoName: String, loop: Boolean = false) {
+        var resID = resources.getIdentifier(
+            sonidoName, "raw", packageName
+        )
+        if (sonidoName == "background") {
+            mpFondo = MediaPlayer.create(this, resID)
+            mpFondo.isLooping = loop
+            mpFondo.setVolume(0.04F, 0.04F)
+            if (!mpFondo.isPlaying) {
+                mpFondo.start()
+            }
+        } else {
+            mp = MediaPlayer.create(this, resID)
+            mp.setOnCompletionListener { mediaPlayer ->
+                mediaPlayer.stop()
+                mediaPlayer.release()
+            }
+            if (!mp.isPlaying) {
+                mp.start()
+            }
+        }
     }
 
     private fun enlazarGUI() {
@@ -120,50 +187,15 @@ class MainActivity : AppCompatActivity() {
         iv_33.setOnClickListener { seleccionar(it as ImageView) }
         iv_34.setOnClickListener { seleccionar(it as ImageView) }
         //</editor-fold>
-        // Iniciar música de fondo
-        sonido("background", true)
     }
 
-    @SuppressLint("DiscouragedApi")
-    private fun sonido(sonidoName: String, loop: Boolean = false) {
-        var resID = resources.getIdentifier(
-            sonidoName, "raw", packageName
-        )
-        if (sonidoName == "background") {
-            mpFondo = MediaPlayer.create(this, resID)
-            mpFondo.isLooping = loop
-            mpFondo.setVolume(0.04F, 0.04F)
-            if (!mpFondo.isPlaying) {
-                mpFondo.start()
-            }
-        } else {
-            mp = MediaPlayer.create(this, resID)
-            mp.setOnCompletionListener { mediaPlayer ->
-                mediaPlayer.stop()
-                mediaPlayer.release()
-            }
-            if (!mp.isPlaying) {
-                mp.start()
-            }
-        }
-    }
 
-    fun musicaFondo(v: View) {
-        if (escuchar) {
-            mpFondo.pause()
-            ib_sonido.setImageResource(R.drawable.ic_volume_off)
-            ib_sonido.setColorFilter(Color.GREEN)
-        } else {
-            mpFondo.start()
-            ib_sonido.setImageResource(R.drawable.ic_volume_on)
-            ib_sonido.setColorFilter(Color.GREEN)
-        }
-        escuchar = !escuchar
-    }
 
     fun seleccionar(imagen: ImageView) {
         if (!imagen.isEnabled) return // Evitar seleccionar una imagen ya encontrada
-        sonido("touch")
+        if (escuchar) {
+            sonido("touch")
+        }
         verificar(imagen)
     }
 
@@ -191,14 +223,17 @@ class MainActivity : AppCompatActivity() {
             imagen2 = iv
             numeroImagen = 1
             iv.isEnabled = false
-            deshabilitarImagenes()
+            deshabilitarImagenes()  // Deshabilita todas las imágenes mientras se verifica
             sonImagenesIguales()
         }
     }
 
     private fun sonImagenesIguales() {
         if (imagen1!!.drawable.constantState == imagen2!!.drawable.constantState) {
-            sonido("success")
+            if (escuchar) {
+                sonido("success")
+            }
+
             if (turno == 1) {
                 puntosj1++
                 tv_j1.text = "J1: $puntosj1"
@@ -207,35 +242,34 @@ class MainActivity : AppCompatActivity() {
                 tv_j2.text = "J2: $puntosj2"
             }
             parejaEncontrada++
-            // Deshabilitar las imágenes emparejadas
-            imagen1!!.isEnabled = false
-            imagen2!!.isEnabled = false
             varificarFinJuego()
         } else {
-            sonido("no")
+            if (escuchar) {
+                sonido("no")
+            }
             Handler().postDelayed({
+                // Volver a ocultar las imágenes si no son iguales
                 imagen1!!.setImageResource(R.drawable.oculta)
                 imagen2!!.setImageResource(R.drawable.oculta)
+                // Habilitar nuevamente las imágenes para permitir la selección
                 habilitarImagenes()
                 cambiarTurno()
             }, 1000)
         }
     }
+
     private fun deshabilitarImagenes() {
-        iv_11.isEnabled = false
-        iv_12.isEnabled = false
-        iv_13.isEnabled = false
-        iv_14.isEnabled = false
-        iv_21.isEnabled = false
-        iv_22.isEnabled = false
-        iv_23.isEnabled = false
-        iv_24.isEnabled = false
-        iv_31.isEnabled = false
-        iv_32.isEnabled = false
-        iv_33.isEnabled = false
-        iv_34.isEnabled = false
+        // Solo deshabilita las imágenes que no han sido encontradas aún
+        if (imagen1!!.isEnabled) {
+            imagen1!!.isEnabled = false
+        }
+        if (imagen2!!.isEnabled) {
+            imagen2!!.isEnabled = false
+        }
     }
+
     private fun habilitarImagenes() {
+        // Habilita todas las imágenes que no han sido encontradas aún
         iv_11.isEnabled = true
         iv_12.isEnabled = true
         iv_13.isEnabled = true
@@ -249,6 +283,7 @@ class MainActivity : AppCompatActivity() {
         iv_33.isEnabled = true
         iv_34.isEnabled = true
     }
+
 
     private fun cambiarTurno() {
         turno = if (turno == 1) 2 else 1
@@ -270,7 +305,10 @@ class MainActivity : AppCompatActivity() {
             // Todas las parejas han sido encontradas, terminar el juego
             mpFondo.stop()
             mpFondo.release()
-            sonido("win")
+            if (escuchar) {
+                sonido("win")
+            }
+
             val builder = AlertDialog.Builder(this)
             builder
                 .setTitle("Fin del juego")
@@ -292,7 +330,6 @@ class MainActivity : AppCompatActivity() {
         parejaEncontrada = 0
         turno = 1
         numeroImagen = 1
-        escuchar = true
 
         // Reiniciar textos de puntajes
         tv_j1.text = "J1: 0"
@@ -304,8 +341,6 @@ class MainActivity : AppCompatActivity() {
         // Mezclar nuevamente el array de imágenes
         imagenesArray.shuffle()
 
-        // Iniciar música de fondo nuevamente
-        sonido("background", true)
         // Establecer todas las imágenes en estado oculto
         iv_11.setImageResource(R.drawable.oculta)
         iv_12.setImageResource(R.drawable.oculta)
@@ -340,15 +375,5 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if (mpFondo.isPlaying) {
-            mpFondo.stop()
-            mpFondo.release()
-        }
-        if (mp.isPlaying) {
-            mp.stop()
-            mp.release()
-        }
-    }
+
 }
